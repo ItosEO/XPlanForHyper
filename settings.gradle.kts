@@ -16,5 +16,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "XPlan"
+rootProject.name = "XPlanForHyper"
 include(":app")

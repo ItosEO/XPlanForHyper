@@ -19,7 +19,7 @@
         android:screenOrientation="portrait"
         tools:targetApi="34">
         <activity
-            android:name="com.itos.xplan.XPlan"
+            android:name="com.itos.xplanforhyper.XPlanForHyper"
             android:exported="true"
             >
             <intent-filter>

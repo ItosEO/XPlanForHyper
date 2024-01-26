@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">X计划</string>
+    <string name="app_name">XHyper</string>
     <string name="action_licenses">许可证</string>
     <string name="build_type">Beta</string>
     <string name="operation_failed">操作失败：%s</string>

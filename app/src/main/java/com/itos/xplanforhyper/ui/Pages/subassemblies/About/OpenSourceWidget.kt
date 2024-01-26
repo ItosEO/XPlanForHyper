@@ -1,3 +1,4 @@
+
 import android.text.util.Linkify
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -6,9 +7,9 @@ import androidx.compose.ui.res.vectorResource
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import com.itos.xplanforhyper.R
+import com.itos.xplanforhyper.XPlanForHyper.Companion.app
 import com.itos.xplanforhyper.datatype.OriginCardItem
 import com.itos.xplanforhyper.utils.OUI
-import com.itos.xplanforhyper.XPlanForHyper.Companion.app
 
 fun showLicenses() {
     MaterialAlertDialogBuilder(app)
@@ -33,7 +34,7 @@ fun OpenSourceWidget() {
 
             label = "Github",
             onClick = {
-                OUI.openLink("https://github.com/ItosEO/OriginPlan")
+                OUI.openLink("https://github.com/ItosEO/XPlanForHyper")
             }
         ),
         OriginCardItem(

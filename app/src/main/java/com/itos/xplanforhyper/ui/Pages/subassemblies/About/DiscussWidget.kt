@@ -1,9 +1,8 @@
+
 import android.content.Intent
 import android.net.Uri
 import android.text.util.Linkify
 import android.widget.Toast
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -11,9 +10,9 @@ import androidx.compose.ui.res.vectorResource
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import com.itos.xplanforhyper.R
+import com.itos.xplanforhyper.XPlanForHyper.Companion.app
 import com.itos.xplanforhyper.datatype.OriginCardItem
 import com.itos.xplanforhyper.utils.OUI
-import com.itos.xplanforhyper.XPlanForHyper.Companion.app
 
 fun show_author() {
     try {
@@ -72,13 +71,13 @@ fun DiscussWidget() {
                 OUI.openLink("https://pd.qq.com/s/8vadinclc")
             }
         ),
-        OriginCardItem(
-            icon = Icons.Default.Share,
-            label = "更多软件",
-            onClick = {
-                moreapp()
-            }
-        ),
+//        OriginCardItem(
+//            icon = Icons.Default.Share,
+//            label = "更多软件",
+//            onClick = {
+//                moreapp()
+//            }
+//        ),
     )
     ItemsCardWidget(
         title = {

@@ -11,15 +11,15 @@ android {
             val ver = defaultConfig.versionName+"(${defaultConfig.versionCode})"
 
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "XPlan_$ver.apk"
+                "XHpyer_$ver.apk"
         }
     }
     defaultConfig {
         applicationId = "com.itos.xplanforhyper"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = 2
+        versionName = "0.2"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

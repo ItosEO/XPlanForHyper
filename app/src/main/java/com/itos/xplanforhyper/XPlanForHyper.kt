@@ -91,6 +91,7 @@ import com.itos.xplanforhyper.utils.OShizuku
 import com.itos.xplanforhyper.utils.OShizuku.checkShizuku
 import com.itos.xplanforhyper.utils.OUI
 import com.itos.xplanforhyper.utils.SpUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -219,7 +220,16 @@ class XPlanForHyper : AppCompatActivity() {
     }
 
     private fun update_notice() {
-        lifecycleScope.launch(Dispatchers.IO) {
+        val handler = CoroutineExceptionHandler { _, exception ->
+            // 在这里处理异常，例如打印日志、上报异常等
+            OLog.e("Update Notice Exception:", exception)
+            MaterialAlertDialogBuilder(context)
+                .setTitle("错误")
+                .setMessage("获取云端更新失败\n请检查网络连接")
+                .setPositiveButton("了解",null)
+                .show()
+        }
+        lifecycleScope.launch(Dispatchers.IO+handler) {
             // 后台工作
             val update = NetUtils.Get(OData.updataUrl)
             // 切换到主线程进行 UI 操作

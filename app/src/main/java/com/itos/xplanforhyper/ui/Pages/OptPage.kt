@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.itos.xplanforhyper.XPlanForHyper.Companion.app
+import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.ControlSystemUpdate
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.HDButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.OptButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.ProcessLimitButton
@@ -93,7 +94,7 @@ fun OptPage() {
             ProcessLimitButton()
 //            Settings_opt()
             HDButton()
-
+            ControlSystemUpdate()
         }
     }
 }

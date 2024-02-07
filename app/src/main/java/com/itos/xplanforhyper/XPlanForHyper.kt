@@ -225,11 +225,11 @@ class XPlanForHyper : AppCompatActivity() {
             OLog.e("Update Notice Exception:", exception)
             MaterialAlertDialogBuilder(context)
                 .setTitle("错误")
-                .setMessage("获取云端更新失败\n请检查网络连接")
-                .setPositiveButton("了解",null)
+                .setMessage("连接服务器失败\n请检查网络连接")
+                .setPositiveButton("了解", null)
                 .show()
         }
-        lifecycleScope.launch(Dispatchers.IO+handler) {
+        lifecycleScope.launch(Dispatchers.IO + handler) {
             // 后台工作
             val update = NetUtils.Get(OData.updataUrl)
             // 切换到主线程进行 UI 操作
@@ -274,7 +274,6 @@ class XPlanForHyper : AppCompatActivity() {
             }
         }
     }
-
 
 
     private fun onRequestPermissionsResult() {
@@ -371,7 +370,7 @@ class XPlanForHyper : AppCompatActivity() {
 
     fun patchProcessLimit() {
         Toast.makeText(context, "请稍等...", Toast.LENGTH_LONG).show()
-        ShizukuExec("device_config set_sync_disabled_for_tests persistent;device_config put activity_manager max_cached_processes 2147483647;device_config put activity_manager max_phantom_processes 2147483647;echo success".toByteArray())
+        ShizukuExec("device_config set_sync_disabled_for_tests persistent;device_config put activity_manager max_cached_processes 2007;device_config put activity_manager max_phantom_processes 2007;echo success".toByteArray())
         MaterialAlertDialogBuilder(context)
             .setTitle("关闭缓存进程和虚进程数量限制")
             .setMessage("调整完成，是否立即重启")

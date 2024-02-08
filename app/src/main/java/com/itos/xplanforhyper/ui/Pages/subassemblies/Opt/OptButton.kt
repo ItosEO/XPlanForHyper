@@ -24,7 +24,7 @@ fun OptButton(){
     ) {
         FilledTonalButton(
             modifier = Modifier
-                .size(width = 130.dp, height = 60.dp),
+                .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = { opt_setappstauts(false) }
         ) {
@@ -33,7 +33,7 @@ fun OptButton(){
         Spacer(modifier = Modifier.width(25.dp))
         FilledTonalButton(
             modifier = Modifier
-                .size(width = 130.dp, height = 60.dp),
+                .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = { opt_setappstauts(true) }
         ) {

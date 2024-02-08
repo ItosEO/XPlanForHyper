@@ -60,7 +60,7 @@ fun Settings_opt() {
     ) {
         FilledTonalButton(
             modifier = Modifier
-                .size(width = 130.dp, height = 60.dp),
+                .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = {
                 SettingsOpt()
@@ -72,7 +72,7 @@ fun Settings_opt() {
         Spacer(modifier = Modifier.width(25.dp))
         FilledTonalButton(
             modifier = Modifier
-                .size(width = 130.dp, height = 60.dp),
+                .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = {
                 SettingsRestore()
@@ -84,7 +84,7 @@ fun Settings_opt() {
 //        Spacer(modifier = Modifier.width(15.dp))
 //        FilledTonalButton(
 //            modifier = Modifier
-//                .size(width = 80.dp, height = 60.dp),
+//                .size(width = 80.dp, height = 70.dp),
 //            shape = RoundedCornerShape(30),
 //            onClick = {
 //                SettingsDebug()

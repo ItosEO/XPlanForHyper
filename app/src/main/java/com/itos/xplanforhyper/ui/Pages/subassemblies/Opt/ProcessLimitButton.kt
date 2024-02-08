@@ -25,18 +25,18 @@ fun ProcessLimitButton(){
     ) {
         FilledTonalButton(
             modifier = Modifier
-                .size(width = 130.dp, height = 60.dp),
+                .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = {
                 app.patchProcessLimit()
             }
         ) {
-            Text("调整Android进程设置", textAlign = TextAlign.Center)
+            Text("调整后台进程设置", textAlign = TextAlign.Center)
         }
         Spacer(modifier = Modifier.width(25.dp))
         FilledTonalButton(
             modifier = Modifier
-                .size(width = 130.dp, height = 60.dp),
+                .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = {
                 app.unpatchProcessLimit()

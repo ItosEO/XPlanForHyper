@@ -57,6 +57,11 @@ android {
     }
 
 }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = true
+        }
+    }
 }
 
 dependencies {

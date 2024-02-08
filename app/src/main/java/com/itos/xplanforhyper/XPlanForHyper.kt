@@ -708,7 +708,7 @@ class XPlanForHyper : AppCompatActivity() {
         Column {
             //val appList = remember { generateAppList(context) }
             // TopAppBar
-            TopAppBar(title = { Text(text = "原·初") },
+            TopAppBar(title = { Text(text = "XHyper") },
                 actions = {
                     IconButton(onClick = {
                         val inputEditText = EditText(context)

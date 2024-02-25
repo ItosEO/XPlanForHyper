@@ -47,13 +47,20 @@ private fun DisableSystemUpdate(){
     if (app.b && app.c) {
 //        val isExist=OPackage.isInstalled("com.android.updater",XPlanForHyper.app.packageManager)
 //        XPlanForHyper.app.SetAppDisabled(mutableStateOf(true), "com.android.updater", isExist, false)
-        uninstall("com.android.updater")
         MaterialAlertDialogBuilder(app)
-            .setTitle("完成")
-            .setMessage("禁用系统更新完成")
-            .setPositiveButton(android.R.string.ok, null)
+            .setTitle("禁用系统更新")
+            .setMessage("该操作可能导致卡米，您确定要进行吗？")
+            .setPositiveButton("确定") { _, _ ->
+                uninstall("com.android.updater")
+                MaterialAlertDialogBuilder(app)
+                    .setTitle("完成")
+                    .setMessage("禁用系统更新完成")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+                app.generateAppList(app)
+            }
+            .setNegativeButton("取消",null)
             .show()
-        app.generateAppList(app)
     } else {
         OShizuku.checkShizuku()
     }

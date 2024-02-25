@@ -369,15 +369,22 @@ class XPlanForHyper : AppCompatActivity() {
     }
 
     fun patchProcessLimit() {
-        Toast.makeText(context, "请稍等...", Toast.LENGTH_LONG).show()
-        ShizukuExec("device_config set_sync_disabled_for_tests persistent;device_config put activity_manager max_cached_processes 2007;device_config put activity_manager max_phantom_processes 2007;echo success".toByteArray())
-        MaterialAlertDialogBuilder(context)
+        MaterialAlertDialogBuilder(app)
             .setTitle("关闭缓存进程和虚进程数量限制")
-            .setMessage("调整完成，是否立即重启")
-            .setPositiveButton("立即重启") { _, _ ->
-                ShizukuExec("reboot".toByteArray())
+            .setMessage("该操作可能导致卡米，您确定要进行吗？")
+            .setPositiveButton("确定") { _, _ ->
+                Toast.makeText(context, "请稍等...", Toast.LENGTH_LONG).show()
+                ShizukuExec("device_config set_sync_disabled_for_tests persistent;device_config put activity_manager max_cached_processes 2007;device_config put activity_manager max_phantom_processes 2007;echo success".toByteArray())
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("关闭缓存进程和虚进程数量限制")
+                    .setMessage("调整完成，是否立即重启")
+                    .setPositiveButton("立即重启") { _, _ ->
+                        ShizukuExec("reboot".toByteArray())
+                    }
+                    .setNegativeButton("暂不重启") { _, _ -> }
+                    .show()
             }
-            .setNegativeButton("暂不重启") { _, _ -> }
+            .setNegativeButton("取消",null)
             .show()
     }
 

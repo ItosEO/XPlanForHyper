@@ -9,10 +9,14 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -95,13 +99,19 @@ import com.itos.xplanforhyper.utils.OShizuku
 import com.itos.xplanforhyper.utils.OShizuku.checkShizuku
 import com.itos.xplanforhyper.utils.OUI
 import com.itos.xplanforhyper.utils.SpUtils
+import com.kongzue.dialogx.DialogX
+import com.kongzue.dialogx.dialogs.PopNotification
+import com.kongzue.dialogx.dialogs.PopTip
+import com.kongzue.dialogx.interfaces.BaseDialog
+import com.kongzue.dialogx.interfaces.DialogLifecycleCallback
+import com.kongzue.dialogx.interfaces.NoTouchInterface
+import com.kongzue.dialogxmaterialyou.style.MaterialYouStyle
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnBinderReceivedListener
-import java.io.OutputStream
 
 // TODO 拆Details页面
 
@@ -140,7 +150,37 @@ class XPlanForHyper : AppCompatActivity() {
             }
         }
         app = this
+        DialogX.init(this)
+        DialogX.onlyOnePopTip = true
+        DialogX.globalTheme = DialogX.THEME.AUTO
 
+        //设置为MaterialYou主题
+        DialogX.globalStyle = MaterialYouStyle()
+        DialogX.dialogLifeCycleListener = object : DialogLifecycleCallback<BaseDialog>() {
+            override fun onShow(dialog: BaseDialog) {
+                super.onShow(dialog)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && dialog !is NoTouchInterface) {
+                    val blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP)
+                    (dialog.ownActivity.window.decorView as ViewGroup).getChildAt(0)
+                        .setRenderEffect(blurEffect)
+                }
+            }
+
+            override fun onDismiss(dialog: BaseDialog) {
+                super.onDismiss(dialog)
+                val sameActivityRunningDialog = BaseDialog.getRunningDialogList(dialog.ownActivity)
+                val iterator = sameActivityRunningDialog.iterator()
+                while (iterator.hasNext()) {
+                    if (iterator.next() is NoTouchInterface) {
+                        iterator.remove()
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (dialog !is PopTip) && (dialog !is PopNotification) && (sameActivityRunningDialog.isEmpty() || sameActivityRunningDialog[0] === dialog)) {
+                    (dialog.ownActivity.window.decorView as ViewGroup).getChildAt(0)
+                        .setRenderEffect(null)
+                }
+            }
+        }
         Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
         
         checkShizuku()

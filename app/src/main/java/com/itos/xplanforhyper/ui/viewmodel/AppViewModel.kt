@@ -27,6 +27,7 @@ import com.itos.xplanforhyper.utils.OData
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.provider.Settings
+import com.kongzue.dialogx.dialogs.MessageDialog
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -41,7 +42,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uninstallMethod = MutableStateFlow(UninstallMethod.PM_ENHANCED)
     val uninstallMethod: StateFlow<UninstallMethod> = _uninstallMethod.asStateFlow()
-    
+
     private val _terminalResult = MutableStateFlow<ShizukuResult?>(null)
     val terminalResult: StateFlow<ShizukuResult?> = _terminalResult.asStateFlow()
 
@@ -81,13 +82,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _uninstallMethod.value = method
         SpUtils.setParam(getApplication(), "method", method.value)
     }
-    
+
     fun executeTerminalCommand(command: String) {
         viewModelScope.launch {
             _terminalResult.value = OShizuku.exec(command.toByteArray())
         }
     }
-    
+
     fun resetTerminalResult() {
         _terminalResult.value = null
     }
@@ -159,16 +160,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-    
+
     private fun showResultDialog(title: String, result: ShizukuResult) {
         val message = result.output.ifBlank { "操作完成，无返回信息。" }
         val finalTitle = if (result.exitCode != 0) "$title (错误码: ${result.exitCode})" else title
-        
-        MaterialAlertDialogBuilder(getApplication())
+
+        MessageDialog.build()
             .setTitle(finalTitle)
             .setMessage(message)
-            .setPositiveButton("好") { _, _ ->
+            .setOkButton("好") { _, _ ->
                 refreshAppList()
+                return@setOkButton false
             }
             .show()
     }

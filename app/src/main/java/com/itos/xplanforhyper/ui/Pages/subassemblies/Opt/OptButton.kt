@@ -9,15 +9,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.itos.xplanforhyper.XPlanForHyper.Companion.app
+import com.itos.xplanforhyper.XPlanForHyper
+import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
 import com.itos.xplanforhyper.utils.OShizuku
 
 @Composable
-fun OptButton(){
+fun OptButton(activity: XPlanForHyper, viewModel: AppViewModel){
     Row(
         modifier = Modifier
             .padding(vertical = 45.dp)
@@ -26,7 +26,7 @@ fun OptButton(){
             modifier = Modifier
                 .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
-            onClick = { opt_setappstauts(false) }
+            onClick = { opt_setappstauts(activity, viewModel, false) }
         ) {
             Text("一键优化")
         }
@@ -35,37 +35,36 @@ fun OptButton(){
             modifier = Modifier
                 .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
-            onClick = { opt_setappstauts(true) }
+            onClick = { opt_setappstauts(activity, viewModel, true) }
         ) {
             Text("还原")
         }
     }
 }
 
-fun opt_setappstauts(status: Boolean) {
-    if (app.b && app.c) {
-        app.generateAppList(app)
+fun opt_setappstauts(activity: XPlanForHyper, viewModel: AppViewModel, status: Boolean) {
+    if (activity.b && activity.c) {
+        viewModel.refreshAppList()
         // 遍历app list
-        for (appInfo in app.optlist) {
+        for (appInfo in viewModel.optlist) {
             if (appInfo.isExist) {
-                app.SetAppDisabled(mutableStateOf(status), appInfo.appPkg, appInfo.isExist, false)
-                appInfo.isDisabled = app.isAppDisabled(appInfo.appPkg)
+                activity.SetAppDisabled(appInfo.copy(isDisabled = status))
             }
         }
         if (!status) {
-            MaterialAlertDialogBuilder(app)
+            MaterialAlertDialogBuilder(activity)
                 .setTitle("完成")
                 .setMessage("一键优化完成")
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         } else {
-            MaterialAlertDialogBuilder(app)
+            MaterialAlertDialogBuilder(activity)
                 .setTitle("完成")
                 .setMessage("还原完成")
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         }
-        app.generateAppList(app)
+        viewModel.refreshAppList()
     } else {
         OShizuku.checkShizuku()
     }

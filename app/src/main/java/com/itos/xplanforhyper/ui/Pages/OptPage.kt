@@ -1,4 +1,4 @@
-package com.itos.xplanforhyper
+package com.itos.xplanforhyper.ui.Pages
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -25,12 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.itos.xplanforhyper.XPlanForHyper
 import com.itos.xplanforhyper.XPlanForHyper.Companion.app
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.ControlSystemUpdateButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.HDButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.OptButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.ProcessLimitButton
 import com.itos.xplanforhyper.ui.theme.OriginPlanTheme
+import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
 import com.itos.xplanforhyper.utils.OData
 
 
@@ -52,7 +54,8 @@ fun SettingsDebug() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OptPage() {
+fun OptPage(viewModel: AppViewModel?) {
+    val activity = XPlanForHyper.app
     Scaffold(modifier = Modifier
         .fillMaxSize()
         .statusBarsPadding(),
@@ -105,13 +108,15 @@ fun OptPage() {
                 verticalArrangement = Arrangement.Center // 将子项垂直居中
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    OptButton()
-                    ProcessLimitButton()
+                    viewModel?.let {
+                        OptButton(activity, it)
+                        ProcessLimitButton()
+                    }
                 }
 
                 Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly){
                     HDButton()
-                    ControlSystemUpdateButton()
+                    ControlSystemUpdateButton(viewModel!!)
                 }
 //            Settings_opt()
 
@@ -125,11 +130,12 @@ fun OptPage() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center // 将子项垂直居中
             ) {
-                OptButton()
-                ProcessLimitButton()
-//            Settings_opt()
-                HDButton()
-                ControlSystemUpdateButton()
+                viewModel?.let {
+                    OptButton(activity, it)
+                    ProcessLimitButton()
+                    HDButton()
+                    ControlSystemUpdateButton(it)
+                }
             }
         }
 
@@ -162,7 +168,7 @@ fun a() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            OptPage()
+            OptPage(null)
         }
     }
 }

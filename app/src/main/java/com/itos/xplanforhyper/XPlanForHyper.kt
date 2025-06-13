@@ -16,6 +16,7 @@ import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -55,9 +56,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.RecomposeScope
-import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +64,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -81,12 +78,12 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import com.itos.xplanforhyper.datatype.AppInfo
+import com.itos.xplanforhyper.ui.Pages.OptPage
 import com.itos.xplanforhyper.ui.theme.OriginPlanTheme
+import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
 import com.itos.xplanforhyper.utils.NetUtils
 import com.itos.xplanforhyper.utils.OData
 import com.itos.xplanforhyper.utils.OLog
-import com.itos.xplanforhyper.utils.OPackage
-import com.itos.xplanforhyper.utils.OPackage.getAppIconByPackageName
 import com.itos.xplanforhyper.utils.OShizuku
 import com.itos.xplanforhyper.utils.OShizuku.checkShizuku
 import com.itos.xplanforhyper.utils.OUI
@@ -113,13 +110,11 @@ class XPlanForHyper : AppCompatActivity() {
     var b = true
     var c = false
     var show_notice: String = "暂无公告"
-
-    //    private var FirstTime_pf: SharedPreferences? = null
-    private val pkglist = mutableListOf<AppInfo>()
-    val optlist = mutableListOf<AppInfo>()
+    
+    private val viewModel: AppViewModel by viewModels()
 
     private val requestPermissionResultListener =
-        Shizuku.OnRequestPermissionResultListener { requestCode: Int, grantResult: Int ->
+        Shizuku.OnRequestPermissionResultListener { _: Int, _: Int ->
             this.onRequestPermissionsResult()
         }
     private val BINDER_RECEVIED_LISTENER =
@@ -140,11 +135,10 @@ class XPlanForHyper : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppListContent()
+                    AppListContent(viewModel)
                 }
             }
         }
-        load_applist()
         app = this
 
         Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
@@ -167,38 +161,7 @@ class XPlanForHyper : AppCompatActivity() {
         Shizuku.addBinderReceivedListenerSticky(BINDER_RECEVIED_LISTENER)
         Shizuku.addBinderDeadListener(BINDER_DEAD_LISTENER)
         guide()
-        generateAppList(context)
         update_notice()
-    }
-
-    private fun load_applist() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // 打开 pkglistfile 文件输入流
-                val inputStream_pkg = resources.openRawResource(R.raw.pkglist)
-                val reader_pkg = BufferedReader(InputStreamReader(inputStream_pkg))
-                val inputStream_opt = resources.openRawResource(R.raw.optlist)
-                val reader_opt = BufferedReader(InputStreamReader(inputStream_opt))
-
-                // 逐行读取文件内容
-                var line_pkg: String?
-                var line_opt: String?
-                while (reader_pkg.readLine().also { line_pkg = it } != null) {
-                    val packageName = line_pkg!!.trim()
-                    // 创建 AppInfo 对象，并添加到列表
-                    val appInfo = AppInfo(appName = "", appPkg = packageName)
-                    pkglist.add(appInfo)
-                }
-                while (reader_opt.readLine().also { line_opt = it } != null) {
-                    val packageName = line_opt!!.trim()
-                    // 创建 AppInfo 对象，并添加到列表
-                    val appInfo = AppInfo(appName = "", appPkg = packageName)
-                    optlist.add(appInfo)
-                }
-            } catch (_: Exception) {
-            }
-        }
-
     }
 
     private fun guide() {
@@ -287,7 +250,7 @@ class XPlanForHyper : AppCompatActivity() {
         Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
     }
 
-    private fun uninstall(appInfo: AppInfo, a: RecomposeScope) {
+    private fun uninstall(appInfo: AppInfo) {
 
         MaterialAlertDialogBuilder(context)
             .setTitle("尝试卸载")
@@ -314,12 +277,7 @@ class XPlanForHyper : AppCompatActivity() {
                     .setTitle("结果")
                     .setMessage(t)
                     .setPositiveButton("ok") { _, _ ->
-                        appInfo.isExist =
-                            OPackage.isInstalled(appInfo.appPkg, context.packageManager)
-                        appInfo.appName = getAppNameByPackageName(context, appInfo.appPkg)
-                        appInfo.appIcon =
-                            getAppIconByPackageName(appInfo.appPkg, context.packageManager)
-                        a.invalidate()
+                        viewModel.refreshAppList()
                     }
                     .show()
             }
@@ -327,7 +285,7 @@ class XPlanForHyper : AppCompatActivity() {
             .show()
     }
 
-    private fun reinstall(appInfo: AppInfo, a: RecomposeScope) {
+    private fun reinstall(appInfo: AppInfo) {
         MaterialAlertDialogBuilder(context)
             .setTitle("尝试重装")
             .setMessage("您将尝试重装 ${appInfo.appPkg} ,此操作仅系统自带核心app可用")
@@ -350,16 +308,7 @@ class XPlanForHyper : AppCompatActivity() {
                     .setTitle("结果")
                     .setMessage(t)
                     .setPositiveButton("ok") { _, _ ->
-                        //重载页面
-                        appInfo.isExist =
-                            OPackage.isInstalled(appInfo.appPkg, context.packageManager)
-                        if (appInfo.isExist) {
-                            appInfo.isDisabled = isAppDisabled(appInfo.appPkg)
-                            appInfo.appName = getAppNameByPackageName(context, appInfo.appPkg)
-                            appInfo.appIcon =
-                                getAppIconByPackageName(appInfo.appPkg, context.packageManager)
-                            a.invalidate()
-                        }
+                        viewModel.refreshAppList()
                     }
                     .show()
             }
@@ -467,23 +416,18 @@ class XPlanForHyper : AppCompatActivity() {
     }
 
     fun SetAppDisabled(
-        isDisabled: MutableState<Boolean>,
-        packagename: String,
-        isExist: Boolean,
-        isShowToast: Boolean = true,
-        appinfolist: MutableState<AppInfo>? = null
+        appInfo: AppInfo
     ): Boolean? {
-        if (isExist) {
-            OShizuku.setAppDisabled(packagename, !isDisabled.value)
-            val c = isAppDisabled(packagename)
-            if (c != isDisabled.value) {
-                if (appinfolist != null) appinfolist.value.isDisabled = c
-                isDisabled.value = c
+        if (appInfo.isExist) {
+            OShizuku.setAppDisabled(appInfo.appPkg, !appInfo.isDisabled)
+            // We must refresh the state from the source of truth
+            viewModel.refreshAppList()
+            // To provide immediate feedback, we can check, but it's not the compose way
+            val c = isAppDisabled(appInfo.appPkg)
+            if (c != appInfo.isDisabled) {
                 return true
             } else {
-                if (isShowToast) {
-                    Toast.makeText(this, "设置失败", Toast.LENGTH_SHORT).show()
-                }
+                Toast.makeText(this, "设置失败", Toast.LENGTH_SHORT).show()
                 return false
             }
         } else {
@@ -544,21 +488,19 @@ class XPlanForHyper : AppCompatActivity() {
     fun isAppDisabled(appPackageName: String): Boolean {
         val packageManager: PackageManager = context.packageManager
 
-        val packageInfo = packageManager.getPackageInfo(appPackageName, 0)
-        // 应用被停用或者处于默认状态（未设置启用状态），返回 true；其他状态返回 false
-        return !packageInfo.applicationInfo?.enabled!!
+        return try {
+            val packageInfo = packageManager.getPackageInfo(appPackageName, 0)
+            // 应用被停用或者处于默认状态（未设置启用状态），返回 true；其他状态返回 false
+            !packageInfo.applicationInfo?.enabled!!
+        } catch (e: Exception) {
+            false
+        }
     }
 
 
     @Composable
-    fun AppListItem(appinfo: AppInfo) {
-        //让 compose监听这个的变化
-        var appInfo = remember { mutableStateOf(appinfo) }
-        val isDisabled = remember { mutableStateOf(appInfo.value.isDisabled) }
-//        val appinfo_remember=remember{ mutableStateOf(appInfo) }
-//        val refreshing = remember { mutableStateOf(false) }
+    fun AppListItem(appInfo: AppInfo, onSetDisabled: (AppInfo) -> Unit, onUninstall: (AppInfo) -> Unit, onReinstall: (AppInfo) -> Unit) {
         var isMenuVisible by remember { mutableStateOf(false) }
-        val recompose = currentRecomposeScope
 
         Row(
             modifier = Modifier
@@ -569,9 +511,9 @@ class XPlanForHyper : AppCompatActivity() {
         ) {
 //            OLog.i("重绘", "触发重绘")
 
-            if (appInfo.value.appIcon != null) {
+            if (appInfo.appIcon != null) {
                 Image(
-                    painter = rememberDrawablePainter(appInfo.value.appIcon),
+                    painter = rememberDrawablePainter(appInfo.appIcon),
                     modifier = Modifier
                         .size(40.dp)
                         .align(Alignment.CenterVertically),
@@ -581,18 +523,18 @@ class XPlanForHyper : AppCompatActivity() {
             // 左边显示应用名称
             Column(modifier = Modifier.weight(0.5f)) {
                 Text(
-                    text = appInfo.value.appName,
+                    text = appInfo.appName,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (!appInfo.value.isExist) Color(0xFFFF6E40) else LocalContentColor.current
+                    color = if (!appInfo.isExist) Color(0xFFFF6E40) else LocalContentColor.current
                 )
-                Text(text = appInfo.value.appPkg, style = MaterialTheme.typography.bodySmall)
+                Text(text = appInfo.appPkg, style = MaterialTheme.typography.bodySmall)
             }
 
             // 中间显示禁用状态文本
             Text(
-                text = if (!appInfo.value.isExist) "Unknown" else if (isDisabled.value) "Disable" else "Enable",
-                color = if (!appInfo.value.isExist) Color(0xFFFF6E40)
-                else if (isDisabled.value) Color(0xFFFF5252)
+                text = if (!appInfo.isExist) "Unknown" else if (appInfo.isDisabled) "Disable" else "Enable",
+                color = if (!appInfo.isExist) Color(0xFFFF6E40)
+                else if (appInfo.isDisabled) Color(0xFFFF5252)
                 else Color(0xFF59F0A6),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(end = 16.dp)
@@ -600,19 +542,13 @@ class XPlanForHyper : AppCompatActivity() {
             // 右边是一个按钮
             IconButton(
                 onClick = {
-                    SetAppDisabled(
-                        isDisabled,
-                        appInfo.value.appPkg,
-                        appInfo.value.isExist,
-                        true,
-                        appInfo
-                    )
+                    onSetDisabled(appInfo)
                 }
             ) {
 
-                val icon: ImageVector = if (appInfo.value.isExist && isDisabled.value) {
+                val icon: ImageVector = if (appInfo.isExist && appInfo.isDisabled) {
                     Icons.Default.Check
-                } else if (appInfo.value.isExist) {
+                } else if (appInfo.isExist) {
                     Icons.Default.Close
                 } else {
                     Icons.Default.Warning
@@ -620,7 +556,7 @@ class XPlanForHyper : AppCompatActivity() {
                 Icon(
                     imageVector = icon,
 
-                    contentDescription = if (!appInfo.value.isExist) "Unknown" else if (isDisabled.value) "Disable" else "Enable"
+                    contentDescription = if (!appInfo.isExist) "Unknown" else if (appInfo.isDisabled) "Disable" else "Enable"
                 )
             }
             IconButton(
@@ -645,10 +581,8 @@ class XPlanForHyper : AppCompatActivity() {
                         },
                         text = { Text(text = "尝试卸载") },
                         onClick = {
-                            isMenuVisible = false;uninstall(
-                            appInfo.value,
-                            recompose
-                        )
+                            isMenuVisible = false
+                            onUninstall(appInfo)
                         }
                         // 处理菜单项点击事件，这里可以添加卸载逻辑
                     )
@@ -659,9 +593,8 @@ class XPlanForHyper : AppCompatActivity() {
                                 contentDescription = "uninstall"
                             )
                         }, text = { Text(text = "尝试重装") }, onClick = {
-                            // ...
                             isMenuVisible = false
-                            reinstall(appInfo.value, recompose)
+                            onReinstall(appInfo)
                         })
                 }
             }
@@ -672,13 +605,21 @@ class XPlanForHyper : AppCompatActivity() {
 
 
     @Composable
-    fun AppList(appList: List<AppInfo>) {
+    fun AppList(
+        viewModel: AppViewModel,
+        onSetDisabled: (AppInfo) -> Unit,
+        onUninstall: (AppInfo) -> Unit,
+        onReinstall: (AppInfo) -> Unit
+    ) {
+        val appList = viewModel.pkglist
+        val optList = viewModel.optlist
+
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(optlist + appList) { appInfo ->
-                AppListItem(appInfo)
+            items(optList + appList) { appInfo ->
+                AppListItem(appInfo, onSetDisabled, onUninstall, onReinstall)
             }
         }
 
@@ -709,9 +650,7 @@ class XPlanForHyper : AppCompatActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Details() {
-        generateAppList(context)
-
+    fun Details(viewModel: AppViewModel) {
         Column {
             //val appList = remember { generateAppList(context) }
             // TopAppBar
@@ -802,14 +741,19 @@ class XPlanForHyper : AppCompatActivity() {
                     }
                 })
             // AppList
-            AppList(appList = pkglist)
+            AppList(
+                viewModel = viewModel,
+                onSetDisabled = { appInfo -> SetAppDisabled(appInfo) },
+                onUninstall = { appInfo -> uninstall(appInfo) },
+                onReinstall = { appInfo -> reinstall(appInfo) }
+            )
         }
     }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun AppListScreen(context: Context) {
+    fun AppListScreen(viewModel: AppViewModel) {
         val navController = rememberNavController()
         Scaffold(
             //设置底部导航栏
@@ -930,9 +874,9 @@ class XPlanForHyper : AppCompatActivity() {
                     startDestination = "1"
                 ) {
                     OLog.i("界面", "绘制横屏开始")
-                    composable("2") { Details() }
+                    composable("2") { Details(viewModel) }
                     composable("3") { AboutPage() }
-                    composable("1") { OptPage() }
+                    composable("1") { OptPage(viewModel) }
                     // 添加其他页面的 composable 函数，类似上面的示例
                 }
             }
@@ -942,37 +886,8 @@ class XPlanForHyper : AppCompatActivity() {
 
 
     @Composable
-    fun AppListContent() {
-        AppListScreen(LocalContext.current)
-    }
-
-    fun generateAppList(context: Context): List<AppInfo> {
-        var a: Boolean
-        // 这里添加你的应用信息
-        for (appinfo in pkglist) {
-            if (OPackage.isInstalled(appinfo.appPkg, context.packageManager)) {
-                appinfo.appName = getAppNameByPackageName(context, appinfo.appPkg)
-                a = isAppDisabled(appinfo.appPkg)
-                appinfo.isDisabled = a
-            } else {
-                appinfo.isExist = false
-                appinfo.appName = "未安装"
-            }
-            appinfo.appIcon = getAppIconByPackageName(appinfo.appPkg, context.packageManager)
-        }
-        for (appinfo in optlist) {
-            if (OPackage.isInstalled(appinfo.appPkg, context.packageManager)) {
-                appinfo.appName = getAppNameByPackageName(context, appinfo.appPkg)
-                a = isAppDisabled(appinfo.appPkg)
-                appinfo.isDisabled = a
-            } else {
-                appinfo.isExist = false
-                appinfo.appName = "未安装"
-            }
-            appinfo.appIcon = getAppIconByPackageName(appinfo.appPkg, context.packageManager)
-        }
-        OLog.i("列表项", pkglist.toString())
-        return pkglist
+    fun AppListContent(viewModel: AppViewModel) {
+        AppListScreen(viewModel)
     }
 
     @Preview(showBackground = true)
@@ -985,7 +900,7 @@ class XPlanForHyper : AppCompatActivity() {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                OptPage()
+                Text("XPlanForHyper Preview")
             }
         }
     }

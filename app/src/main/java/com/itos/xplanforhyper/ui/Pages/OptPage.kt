@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.itos.xplanforhyper.XPlanForHyper
 import com.itos.xplanforhyper.XPlanForHyper.Companion.app
@@ -36,20 +37,22 @@ import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
 import com.itos.xplanforhyper.utils.OData
 
 
-fun SettingsDebug() {
-    MaterialAlertDialogBuilder(app)
-        .setTitle("调试")
-        .setMessage("这是调试功能,您确定要使用吗?")
-        .setPositiveButton("OK") { _, _ ->
-            val temp = app.ShizukuExec(OData.configdata.debug.toByteArray())
-            MaterialAlertDialogBuilder(app)
-                .setTitle("调试信息")
-                .setMessage(temp)
-                .setPositiveButton("OK", null)
-                .show()
-        }
-        .show()
-}
+//@Composable
+//fun SettingsDebug(viewModel: AppViewModel) {
+//    MaterialAlertDialogBuilder(app)
+//        .setTitle("调试")
+//        .setMessage("这是调试功能,您确定要使用吗?")
+//        .setPositiveButton("OK") { _, _ ->
+//            // This would need to be in a coroutine scope
+//            // viewModel.shizukuExec(OData.configdata.debug.toByteArray())
+//            MaterialAlertDialogBuilder(app)
+//                .setTitle("调试信息")
+//                .setMessage("temp") // temp would be from a suspend function
+//                .setPositiveButton("OK", null)
+//                .show()
+//        }
+//        .show()
+//}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,15 +113,17 @@ fun OptPage(viewModel: AppViewModel?) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     viewModel?.let {
                         OptButton(activity, it)
-                        ProcessLimitButton()
+                        ProcessLimitButton(it)
                     }
                 }
 
                 Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly){
-                    HDButton()
-                    ControlSystemUpdateButton(viewModel!!)
+                    viewModel?.let {
+                        HDButton(it)
+                        ControlSystemUpdateButton(it)
+                    }
                 }
-//            Settings_opt()
+//            Settings_opt(viewModel)
 
             }
         } else {
@@ -132,8 +137,8 @@ fun OptPage(viewModel: AppViewModel?) {
             ) {
                 viewModel?.let {
                     OptButton(activity, it)
-                    ProcessLimitButton()
-                    HDButton()
+                    ProcessLimitButton(it)
+                    HDButton(it)
                     ControlSystemUpdateButton(it)
                 }
             }

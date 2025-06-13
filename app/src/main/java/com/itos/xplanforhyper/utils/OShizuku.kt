@@ -10,12 +10,18 @@ import android.view.KeyEvent
 import android.widget.Toast
 import com.itos.xplanforhyper.BuildConfig
 import com.itos.xplanforhyper.XPlanForHyper.Companion.app
+import com.itos.xplanforhyper.datatype.ShizukuResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
+import rikka.shizuku.ShizukuRemoteProcess
 import rikka.shizuku.SystemServiceHelper
 
 object OShizuku {
+    private var isExecuting = false
     private val myUserId = android.os.Process.myUserHandle().hashCode()
     private val isRoot get() = Shizuku.getUid() == 0
     private val userId get() = if (isRoot) myUserId else 0
@@ -129,4 +135,45 @@ object OShizuku {
     private val ParcelFileDescriptor.text
         get() = ParcelFileDescriptor.AutoCloseInputStream(this)
             .use { it.bufferedReader().readText() }
+
+    suspend fun exec(cmd: ByteArray): ShizukuResult = withContext(Dispatchers.IO) {
+        if (isExecuting) {
+            return@withContext ShizukuResult(-1, "正在执行其他操作")
+        }
+        
+        if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+            return@withContext ShizukuResult(-1, "Shizuku未授权")
+        }
+
+        isExecuting = true
+        var process: ShizukuRemoteProcess? = null
+        try {
+            process = Shizuku.newProcess(arrayOf("sh"), null, null)
+            process.outputStream.use { outputStream ->
+                outputStream.write(cmd)
+            }
+
+            val output = async {
+                process.inputStream.bufferedReader().readText()
+            }
+            val error = async {
+                process.errorStream.bufferedReader().readText()
+            }
+
+            val exitCode = process.waitFor()
+            val resultOutput = output.await()
+            val errorOutput = error.await()
+
+            OLog.i("运行shell", "Output_Normal:\n$resultOutput")
+            OLog.i("运行shell", "Output_Error:\n$errorOutput")
+
+            ShizukuResult(exitCode, resultOutput + errorOutput)
+        } catch (e: Exception) {
+            OLog.e("ShizukuExec Error", e)
+            ShizukuResult(-1, e.message ?: "Unknown error")
+        } finally {
+            process?.destroy()
+            isExecuting = false
+        }
+    }
 }

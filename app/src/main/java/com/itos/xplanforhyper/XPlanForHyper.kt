@@ -20,6 +20,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,11 +53,15 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,6 +84,7 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import com.itos.xplanforhyper.datatype.AppInfo
+import com.itos.xplanforhyper.datatype.UninstallMethod
 import com.itos.xplanforhyper.ui.Pages.OptPage
 import com.itos.xplanforhyper.ui.theme.OriginPlanTheme
 import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
@@ -94,19 +101,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnBinderReceivedListener
-import rikka.shizuku.ShizukuRemoteProcess
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.io.OutputStream
 
 // TODO 拆Details页面
 
 class XPlanForHyper : AppCompatActivity() {
     val context: Context = this
-    var ReturnValue = 0
-    var br = false
-    var h2: Thread? = null
-    var h3: Thread? = null
     var b = true
     var c = false
     var show_notice: String = "暂无公告"
@@ -142,22 +142,8 @@ class XPlanForHyper : AppCompatActivity() {
         app = this
 
         Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
-        // 3是a13，2是a12（service call），1是pm增强，0是pm
-        when (Build.VERSION.SDK_INT) {
-            Build.VERSION_CODES.TIRAMISU -> {
-                SpUtils.setParam(context, "method", 3)
-            }
-
-            Build.VERSION_CODES.S, Build.VERSION_CODES.S_V2 -> {
-                SpUtils.setParam(context, "method", 2)
-            }
-
-            else -> {
-                SpUtils.setParam(context, "method", 1)
-            }
-        }
+        
         checkShizuku()
-        OUI.check_secure_premission()
         Shizuku.addBinderReceivedListenerSticky(BINDER_RECEVIED_LISTENER)
         Shizuku.addBinderDeadListener(BINDER_DEAD_LISTENER)
         guide()
@@ -169,11 +155,11 @@ class XPlanForHyper : AppCompatActivity() {
             MaterialAlertDialogBuilder(context)
                 .setTitle("帮助")
                 .setMessage("您需要Shiuzku激活教程吗")
-                .setPositiveButton("好的") { dialog, which ->
+                .setPositiveButton("好的") { _, _ ->
                     SpUtils.setParam(context, "if_first_time", false)
                     OUI.openLink("https://www.bilibili.com/video/BV1o94y1u7Kq")
                 }
-                .setNegativeButton("我会") { dialog, which ->
+                .setNegativeButton("我会") { dialog, _ ->
                     SpUtils.setParam(context, "if_first_time", false)
                     dialog.dismiss()
                 }
@@ -215,7 +201,7 @@ class XPlanForHyper : AppCompatActivity() {
                     MaterialAlertDialogBuilder(context)
                         .setTitle("有新版本")
                         .setMessage("最新版本：$version_name($version)\n\n更新日志：\n$log")
-                        .setPositiveButton("前往更新") { dialog, which ->
+                        .setPositiveButton("前往更新") { _, _ ->
                             OUI.openLink(url)
                             finish()
                         }
@@ -227,7 +213,7 @@ class XPlanForHyper : AppCompatActivity() {
                         MaterialAlertDialogBuilder(context)
                             .setTitle("公告")
                             .setMessage(notice)
-                            .setPositiveButton("我知道了") { dialog, which ->
+                            .setPositiveButton("我知道了") { dialog, _ ->
                                 dialog.dismiss()
                             }
                             .show()
@@ -248,171 +234,6 @@ class XPlanForHyper : AppCompatActivity() {
         Shizuku.removeBinderReceivedListener(BINDER_RECEVIED_LISTENER)
         Shizuku.removeBinderDeadListener(BINDER_DEAD_LISTENER)
         Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
-    }
-
-    private fun uninstall(appInfo: AppInfo) {
-
-        MaterialAlertDialogBuilder(context)
-            .setTitle("尝试卸载")
-            .setMessage("您将卸载 ${appInfo.appName}(${appInfo.appPkg})")
-            .setPositiveButton("确定") { _, _ ->
-                val t: String? = when (SpUtils.getParam(context, "method", 1)) {
-                    3 -> {
-                        ShizukuExec("service call package 131 s16 ${appInfo.appPkg} i32 0 i32 0".toByteArray())
-                    }
-
-                    2 -> {
-                        ShizukuExec("service call package 134 s16 ${appInfo.appPkg} i32 0 i32 0".toByteArray())
-                    }
-
-                    1 -> {
-                        ShizukuExec("pm uninstall --user 0 ${appInfo.appPkg}".toByteArray())
-                    }
-
-                    else -> {
-                        ShizukuExec("pm uninstall ${appInfo.appPkg}".toByteArray())
-                    }
-                }
-                MaterialAlertDialogBuilder(context)
-                    .setTitle("结果")
-                    .setMessage(t)
-                    .setPositiveButton("ok") { _, _ ->
-                        viewModel.refreshAppList()
-                    }
-                    .show()
-            }
-            .setNegativeButton("取消") { _, _ -> }
-            .show()
-    }
-
-    private fun reinstall(appInfo: AppInfo) {
-        MaterialAlertDialogBuilder(context)
-            .setTitle("尝试重装")
-            .setMessage("您将尝试重装 ${appInfo.appPkg} ,此操作仅系统自带核心app可用")
-            .setPositiveButton("确定") { _, _ ->
-                Toast.makeText(context, "请稍等...", Toast.LENGTH_LONG).show()
-                val t: String? = when (SpUtils.getParam(context, "method", 1)) {
-                    3 -> {
-                        ShizukuExec("service call package 131 s16 ${appInfo.appPkg} i32 1 i32 0".toByteArray())
-                    }
-
-                    2 -> {
-                        ShizukuExec("service call package 134 s16 ${appInfo.appPkg} i32 1 i32 0".toByteArray())
-                    }
-
-                    else -> {
-                        ShizukuExec("pm install-existing ${appInfo.appPkg}".toByteArray())
-                    }
-                }
-                MaterialAlertDialogBuilder(context)
-                    .setTitle("结果")
-                    .setMessage(t)
-                    .setPositiveButton("ok") { _, _ ->
-                        viewModel.refreshAppList()
-                    }
-                    .show()
-            }
-            .setNegativeButton("取消") { _, _ -> }
-            .show()
-
-    }
-
-    fun patchProcessLimit() {
-        MaterialAlertDialogBuilder(app)
-            .setTitle("关闭缓存进程和虚进程数量限制")
-            .setMessage("该操作可能导致卡米，您确定要进行吗？")
-            .setPositiveButton("确定") { _, _ ->
-                Toast.makeText(context, "请稍等...", Toast.LENGTH_LONG).show()
-                ShizukuExec("device_config set_sync_disabled_for_tests persistent;device_config put activity_manager max_cached_processes 2007;device_config put activity_manager max_phantom_processes 2007;echo success".toByteArray())
-                MaterialAlertDialogBuilder(context)
-                    .setTitle("关闭缓存进程和虚进程数量限制")
-                    .setMessage("调整完成，是否立即重启")
-                    .setPositiveButton("立即重启") { _, _ ->
-                        ShizukuExec("reboot".toByteArray())
-                    }
-                    .setNegativeButton("暂不重启") { _, _ -> }
-                    .show()
-            }
-            .setNegativeButton("取消",null)
-            .show()
-    }
-
-    fun unpatchProcessLimit() {
-        Toast.makeText(context, "请稍等...", Toast.LENGTH_LONG).show()
-        ShizukuExec("device_config set_sync_disabled_for_tests none;device_config put activity_manager max_cached_processes 32;device_config put activity_manager max_phantom_processes 32".toByteArray())
-        MaterialAlertDialogBuilder(context)
-            .setTitle("还原缓存进程和虚进程数量限制")
-            .setMessage("还原完成，是否立即重启")
-            .setPositiveButton("立即重启") { _, _ ->
-                ShizukuExec("reboot".toByteArray())
-            }
-            .setNegativeButton("暂不重启") { _, _ -> }
-            .show()
-    }
-
-    fun ShizukuExec(cmd: ByteArray): String? {
-        if (br) {
-            return "正在执行其他操作"
-        }
-        if (!b || !c) {
-            Toast.makeText(context, "Shizuku 状态异常", Toast.LENGTH_SHORT).show()
-            return "Shizuku 状态异常"
-        }
-        br = true
-
-        val p: ShizukuRemoteProcess
-        val op = arrayOfNulls<String>(1)
-        try {
-            OLog.i("运行shell", "开始运行$cmd")
-            p = Shizuku.newProcess(arrayOf("sh"), null, null)
-            val out: OutputStream = p.outputStream
-            out.write(cmd)
-            out.flush()
-            out.close()
-            h2 = Thread {
-                try {
-                    val outText = StringBuilder()
-                    val reader = BufferedReader(InputStreamReader(p.inputStream))
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
-                        outText.append(line).append("\n")
-                    }
-                    reader.close()
-                    val output = outText.toString()
-                    OLog.i("运行shell", "Output_Normal:\n$output")
-                    op[0] = output
-                } catch (ignored: java.lang.Exception) {
-                }
-            }
-            h2!!.start()
-            h3 = Thread {
-                try {
-                    val outText = StringBuilder()
-                    val reader = BufferedReader(InputStreamReader(p.getErrorStream()))
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
-                        outText.append(line).append("\n")
-                    }
-                    reader.close()
-                    val output = outText.toString()
-                    op[0] += output
-                    OLog.i("运行shell", "Output_Error:\n$output")
-                } catch (ignored: java.lang.Exception) {
-                }
-            }
-            h3!!.start()
-
-            p.waitFor()
-            h2!!.join()
-            ReturnValue = p.exitValue()
-            OLog.i("运行shell", "跑完了")
-            p.destroyForcibly()
-            br = false
-
-            return op[0]
-        } catch (ignored: java.lang.Exception) {
-        }
-        return "null"
     }
 
     fun SetAppDisabled(
@@ -499,7 +320,12 @@ class XPlanForHyper : AppCompatActivity() {
 
 
     @Composable
-    fun AppListItem(appInfo: AppInfo, onSetDisabled: (AppInfo) -> Unit, onUninstall: (AppInfo) -> Unit, onReinstall: (AppInfo) -> Unit) {
+    fun AppListItem(
+        appInfo: AppInfo,
+        onSetDisabled: (AppInfo) -> Unit,
+        onUninstall: (AppInfo) -> Unit,
+        onReinstall: (AppInfo) -> Unit
+    ) {
         var isMenuVisible by remember { mutableStateOf(false) }
 
         Row(
@@ -606,10 +432,7 @@ class XPlanForHyper : AppCompatActivity() {
 
     @Composable
     fun AppList(
-        viewModel: AppViewModel,
-        onSetDisabled: (AppInfo) -> Unit,
-        onUninstall: (AppInfo) -> Unit,
-        onReinstall: (AppInfo) -> Unit
+        viewModel: AppViewModel
     ) {
         val appList = viewModel.pkglist
         val optList = viewModel.optlist
@@ -619,10 +442,14 @@ class XPlanForHyper : AppCompatActivity() {
             modifier = Modifier.fillMaxSize()
         ) {
             items(optList + appList) { appInfo ->
-                AppListItem(appInfo, onSetDisabled, onUninstall, onReinstall)
+                AppListItem(
+                    appInfo = appInfo,
+                    onSetDisabled = { SetAppDisabled(it) },
+                    onUninstall = { viewModel.uninstallApp(it) },
+                    onReinstall = { viewModel.reinstallApp(it) }
+                )
             }
         }
-
     }
 
     private fun copyText(text: String) = getSystemService<ClipboardManager>()
@@ -651,9 +478,64 @@ class XPlanForHyper : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Details(viewModel: AppViewModel) {
+        var showDialog by remember { mutableStateOf(false) }
+        val currentMethod by viewModel.uninstallMethod.collectAsState()
+        val terminalResult by viewModel.terminalResult.collectAsState()
+
+        LaunchedEffect(terminalResult) {
+            terminalResult?.let { result ->
+                onTerminalResult(result.exitCode, result.output)
+                viewModel.resetTerminalResult() // Reset after showing
+            }
+        }
+
+        if (showDialog) {
+            val allMethods = UninstallMethod.entries.toTypedArray()
+            var selectedMethod by remember { mutableStateOf(currentMethod) }
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("设置方案") },
+                text = {
+                    Column {
+                        allMethods.forEach { method ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedMethod = method }
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = (method == selectedMethod),
+                                    onClick = { selectedMethod = method }
+                                )
+                                Text(
+                                    text = method.displayName,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.setUninstallMethod(selectedMethod)
+                            showDialog = false
+                        }
+                    ) {
+                        Text("确定")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("取消")
+                    }
+                }
+            )
+        }
+        
         Column {
-            //val appList = remember { generateAppList(context) }
-            // TopAppBar
             TopAppBar(title = { Text(text = "XHyper") },
                 actions = {
                     IconButton(onClick = {
@@ -665,12 +547,7 @@ class XPlanForHyper : AppCompatActivity() {
                             .setTitle("终端")
                             .setView(inputEditText)
                             .setPositiveButton(android.R.string.ok) { _, _ ->
-                                lifecycleScope.launch {
-                                    val result =
-                                        ShizukuExec(inputEditText.text.toString().toByteArray())
-                                    OLog.i("终端结果：", result!!)
-                                    onTerminalResult(ReturnValue, result)
-                                }
+                                viewModel.executeTerminalCommand(inputEditText.text.toString())
                             }
                             .setNegativeButton(android.R.string.cancel, null)
                             .show()
@@ -681,72 +558,14 @@ class XPlanForHyper : AppCompatActivity() {
                             contentDescription = "terminal"
                         )
                     }
-                    IconButton(
-                        onClick = {
-                            val options = arrayOf(
-                                "pm命令",
-                                "pm命令（增强）",
-                                "service call（Android 12）",
-                                "service call（Android 13）"
-                            )
-                            var selectedItem = SpUtils.getParam(context, "method", 1) as Int
-                            Toast.makeText(
-                                context,
-                                "设置卸载、重装操作的实现方案\nservice call一般可以卸载更多app",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            MaterialAlertDialogBuilder(context)
-                                .setTitle("设置方案")
-                                .setSingleChoiceItems(options, selectedItem) { _, which ->
-                                    // 设置选中状态
-                                    selectedItem = which
-                                }
-                                .setPositiveButton("确定") { _, _ ->
-                                    // 处理确定按钮点击事件，可以根据 selectedItem 执行相应逻辑
-                                    if (selectedItem != -1) {
-                                        when (selectedItem) {
-                                            0 -> {
-                                                // 选择了 "pm命令"
-                                                SpUtils.setParam(context, "method", 0)
-                                            }
-
-                                            1 -> {
-                                                // 选择了 "pm命令"
-                                                SpUtils.setParam(context, "method", 1)
-                                            }
-
-                                            2 -> {
-                                                // 选择了 "service call（Android 12）"
-                                                SpUtils.setParam(context, "method", 2)
-                                            }
-
-                                            3 -> {
-                                                // 选择了 "service call（Android 13）"
-                                                SpUtils.setParam(context, "method", 3)
-                                            }
-                                        }
-                                    }
-                                }
-                                .setNegativeButton("取消") { dialog, _ ->
-                                    // 处理取消按钮点击事件
-                                    dialog.dismiss()
-                                }
-                                .show()
-                        }
-                    ) {
+                    IconButton(onClick = { showDialog = true }) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = "settings"
                         )
                     }
                 })
-            // AppList
-            AppList(
-                viewModel = viewModel,
-                onSetDisabled = { appInfo -> SetAppDisabled(appInfo) },
-                onUninstall = { appInfo -> uninstall(appInfo) },
-                onReinstall = { appInfo -> reinstall(appInfo) }
-            )
+            AppList(viewModel = viewModel)
         }
     }
 

@@ -14,46 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.itos.xplanforhyper.XPlanForHyper.Companion.app
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.itos.xplanforhyper.utils.OData
-
-fun SettingsOpt(){
-//    if (OData.is_have_premissipn){
-//        OData.configdata.data.forEach { innerList ->
-////            Settings.System.putString(app.contentResolver, innerList[0], Integer.valueOf(innerList[1]))
-//            SpUtils.putSettingsParam(app, innerList[2], innerList[0], innerList[1])
-//            OLog.i("系统参数调优",innerList.toString())
-//        }
-//    }else{
-//        Toast.makeText(app,"权限不足",Toast.LENGTH_SHORT).show()
-//    }
-    app.ShizukuExec(OData.configdata.shell.toByteArray())
-    MaterialAlertDialogBuilder(app)
-        .setTitle("完成")
-        .setMessage("调整完成")
-        .setPositiveButton("OK",null)
-        .show()
-}
-fun SettingsRestore (){
-//    if (OData.is_have_premissipn){
-//        OData.configdata.data.forEach { innerList ->
-////            Settings.System.putString(app.contentResolver, innerList[0], Integer.valueOf(innerList[1]))
-//            SpUtils.putSettingsParam(app, innerList[2], innerList[0], innerList[1])
-//            OLog.i("系统参数调优",innerList.toString())
-//        }
-//    }else{
-//        Toast.makeText(app,"权限不足",Toast.LENGTH_SHORT).show()
-//    }
-    app.ShizukuExec(OData.configdata.restore.toByteArray())
-    MaterialAlertDialogBuilder(app)
-        .setTitle("完成")
-        .setMessage("还原完成")
-        .setPositiveButton("OK",null)
-        .show()
-}
+import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
 
 @Composable
-fun Settings_opt() {
+fun Settings_opt(viewModel: AppViewModel) {
     Row(
         modifier = Modifier
             .padding(vertical = 45.dp)
@@ -63,7 +27,7 @@ fun Settings_opt() {
                 .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = {
-                SettingsOpt()
+                viewModel.settingsOpt()
                 Toast.makeText(app, "开发中...", Toast.LENGTH_SHORT).show()
             }
         ) {
@@ -75,23 +39,11 @@ fun Settings_opt() {
                 .size(width = 130.dp, height = 70.dp),
             shape = RoundedCornerShape(30),
             onClick = {
-                SettingsRestore()
+                viewModel.settingsRestore()
                 Toast.makeText(app, "开发中...", Toast.LENGTH_SHORT).show()
             }
         ) {
             Text("还原\n系统参数", textAlign = TextAlign.Center)
         }
-//        Spacer(modifier = Modifier.width(15.dp))
-//        FilledTonalButton(
-//            modifier = Modifier
-//                .size(width = 80.dp, height = 70.dp),
-//            shape = RoundedCornerShape(30),
-//            onClick = {
-//                SettingsDebug()
-//                Toast.makeText(app, "开发中...", Toast.LENGTH_SHORT).show()
-//            }
-//        ) {
-//            Text("调试", textAlign = TextAlign.Center)
-//        }
     }
 }

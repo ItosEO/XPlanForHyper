@@ -13,28 +13,6 @@ import java.io.IOException
 
 object OUI {
 
-    fun check_secure_premission() {
-        try {
-            Settings.Secure.putString(app.contentResolver, "xplan", "test")
-            OData.is_have_premissipn = true
-        } catch (e: Exception) {
-            OLog.e("写入安全设置权限异常", e)
-            OLog.i("写入安全设置权限异常", "$app.b $app.c")
-            if (app.b && app.c) {
-                val temp = app.ShizukuExec("pm grant com.itos.xplan android.permission.WRITE_SECURE_SETTINGS".toByteArray())
-                if (temp == "") {
-                    OData.is_have_premissipn = true
-                } else {
-                    OData.is_have_premissipn = false
-                    OLog.i("设置 写入安全设置权限异常", temp!!)
-                }
-            } else {
-                OShizuku.checkShizuku()
-            }
-
-        }
-    }
-
     fun openLink(url: String) {
         app.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     }

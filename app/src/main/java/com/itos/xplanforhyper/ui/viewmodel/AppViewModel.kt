@@ -52,6 +52,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         checkAndGrantSecureSettingsPermission()
     }
 
+    /**
+     * 检查并授予写入安全设置的权限。
+     * 它首先尝试直接写入一个测试值。如果失败，它会尝试使用 Shizuku 授予 `android.permission.WRITE_SECURE_SETTINGS` 权限。
+     */
     private fun checkAndGrantSecureSettingsPermission() {
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
@@ -73,26 +77,45 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 从 SharedPreferences 加载卸载方法。
+     * 默认使用增强型 PM 卸载。
+     */
     private fun loadUninstallMethod() {
         val methodValue = SpUtils.getParam(getApplication(), "method", UninstallMethod.PM_ENHANCED.value) as Int
         _uninstallMethod.value = UninstallMethod.fromValue(methodValue)
     }
 
+    /**
+     * 设置并持久化用户选择的卸载方法。
+     * @param method 要设置的卸载方法。
+     */
     fun setUninstallMethod(method: UninstallMethod) {
         _uninstallMethod.value = method
         SpUtils.setParam(getApplication(), "method", method.value)
     }
 
+    /**
+     * 使用 Shizuku 执行给定的终端命令。
+     * @param command 要执行的命令字符串。
+     */
     fun executeTerminalCommand(command: String) {
         viewModelScope.launch {
             _terminalResult.value = OShizuku.exec(command.toByteArray())
         }
     }
 
+    /**
+     * 重置终端执行结果，通常在处理完结果后调用。
+     */
     fun resetTerminalResult() {
         _terminalResult.value = null
     }
 
+    /**
+     * 根据当前选择的卸载方法卸载指定的应用程序。
+     * @param appInfo 要卸载的应用信息。
+     */
     fun uninstallApp(appInfo: AppInfo) {
         viewModelScope.launch {
             val command = when (_uninstallMethod.value) {
@@ -109,6 +132,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 重新安装指定的应用程序。
+     * @param appInfo 要重装的应用信息。
+     */
     fun reinstallApp(appInfo: AppInfo) {
         viewModelScope.launch {
             val command = when (_uninstallMethod.value) {
@@ -127,6 +154,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 根据包名卸载应用程序。
+     * @param packageName 要卸载的应用的包名。
+     */
     fun uninstallPackageByName(packageName: String) {
         viewModelScope.launch {
             val command = when (_uninstallMethod.value) {
@@ -143,6 +174,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 根据包名重新安装应用程序。
+     * @param packageName 要重装的应用的包名。
+     */
     fun reinstallPackageByName(packageName: String) {
         viewModelScope.launch {
             val command = when (_uninstallMethod.value) {
@@ -161,6 +196,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 显示一个对话框来展示操作结果。
+     * @param title 对话框的标题。
+     * @param result Shizuku 的执行结果。
+     */
     private fun showResultDialog(title: String, result: ShizukuResult) {
         val message = result.output.ifBlank { "操作完成，无返回信息。" }
         val finalTitle = if (result.exitCode != 0) "$title (错误码: ${result.exitCode})" else title
@@ -175,6 +215,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             .show()
     }
 
+    /**
+     * 从 `res/raw` 目录中的 `pkglist` 和 `optlist` 文件加载应用列表。
+     * 加载后会调用 `generateAppListDetails` 来填充应用详情。
+     */
     private fun loadAppLists() {
         viewModelScope.launch(Dispatchers.IO) {
             val context = getApplication<Application>().applicationContext
@@ -210,6 +254,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 刷新应用列表，更新应用的状态（如是否安装、是否禁用）。
+     */
     fun refreshAppList() {
         viewModelScope.launch {
             _isRefreshing.value = true
@@ -218,6 +265,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 为 `pkglist` 和 `optlist` 中的每个应用生成详细信息，
+     * 包括应用名称、图标和状态。
+     */
     private fun generateAppListDetails() {
         viewModelScope.launch(Dispatchers.IO) {
             val context = getApplication<Application>().applicationContext
@@ -237,6 +288,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 更新单个应用的信息。
+     * @param appInfo 要更新的应用信息。
+     * @param context 应用上下文。
+     * @param packageManager 包管理器实例。
+     * @return 更新后的 AppInfo 对象。
+     */
     private fun updateAppInfo(appInfo: AppInfo, context: Context, packageManager: PackageManager): AppInfo {
         val isInstalled = OPackage.isInstalled(appInfo.appPkg, packageManager)
         return if (isInstalled) {
@@ -255,6 +313,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 根据包名获取应用名称。
+     * @param context 应用上下文。
+     * @param packageName 应用的包名。
+     * @return 应用的名称，如果未安装则返回 "未安装"。
+     */
     private fun getAppNameByPackageName(context: Context, packageName: String): String {
         return try {
             val pm = context.packageManager
@@ -265,6 +329,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 检查应用是否被禁用。
+     * @param appPackageName 应用的包名。
+     * @param packageManager 包管理器实例。
+     * @return 如果应用被禁用则返回 `true`，否则返回 `false`。
+     */
     private fun isAppDisabled(appPackageName: String, packageManager: PackageManager): Boolean {
         return try {
             val packageInfo = packageManager.getPackageInfo(appPackageName, 0)
@@ -274,6 +344,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 修改系统设置以关闭后台缓存进程和虚进程的数量限制。
+     * 这是一个高风险操作，可能导致设备不稳定。
+     */
     fun patchProcessLimit() {
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
@@ -305,6 +379,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 还原对后台进程限制的修改。
+     */
     fun unpatchProcessLimit() {
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
@@ -329,39 +406,57 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 通过将 "hd" 添加到状态栏图标黑名单中来隐藏 VoLTE HD 图标。
+     */
     fun hideHD() {
         viewModelScope.launch {
             OLog.i("隐藏HD", "Shizuku方案")
             val result = OShizuku.exec("settings get secure icon_blacklist".toByteArray())
-            var data = result.output
-            OLog.i("隐藏HD", "当前黑名单列表: $data")
-            data = data.trimEnd()
-            data = data.replace(Regex(",+"), ",")
-            data = data.replace(Regex("(,rotate,hd)+"), ",rotate,hd")
-            data = "$data,rotate,hd"
-            OLog.i("隐藏HD", "处理后黑名单列表: $data")
-            OShizuku.exec("settings put secure icon_blacklist $data,rotate,hd".toByteArray())
+            val currentBlacklist = result.output.trim()
+            OLog.i("隐藏HD", "当前黑名单列表: $currentBlacklist")
+
+            val iconSet = currentBlacklist.split(',')
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .toMutableSet()
+
+            iconSet.add("hd")
+            iconSet.add("rotate") // 根据原始逻辑，同时添加 rotate
+
+            val newBlacklist = iconSet.joinToString(",")
+            OLog.i("隐藏HD", "处理后黑名单列表: $newBlacklist")
+            OShizuku.exec("settings put secure icon_blacklist \"$newBlacklist\"".toByteArray())
         }
     }
 
+    /**
+     * 从状态栏图标黑名单中移除 "hd"，以恢复 VoLTE HD 图标的显示。
+     */
     fun unhideHD() {
         viewModelScope.launch {
             OLog.i("还原HD", "Shizuku方案")
-            var data = OShizuku.exec("settings get secure icon_blacklist".toByteArray()).output
-            data = data.trimEnd()
+            val result = OShizuku.exec("settings get secure icon_blacklist".toByteArray())
+            val currentBlacklist = result.output.trim()
+            OLog.i("还原HD", "待处理数据: $currentBlacklist")
 
-            OLog.i("还原HD", "待处理数据: $data")
-            val targets = listOf("hd")
-            val regex = targets.joinToString(separator = "|").toRegex()
-            var resultString = regex.replace(data, "")
-            resultString = resultString.replace(Regex("(,rotate)+"), ",rotate")
-            resultString = resultString.replace(Regex(",+"), ",")
-            OLog.i("还原HD", "处理结果: $resultString")
+            val iconSet = currentBlacklist.split(',')
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .toMutableSet()
 
-            OShizuku.exec("settings put secure icon_blacklist $resultString".toByteArray())
+            iconSet.remove("hd")
+
+            val newBlacklist = iconSet.joinToString(",")
+            OLog.i("还原HD", "处理结果: $newBlacklist")
+
+            OShizuku.exec("settings put secure icon_blacklist \"$newBlacklist\"".toByteArray())
         }
     }
 
+    /**
+     * 应用 `OData.configdata.shell` 中定义的系统参数优化。
+     */
     fun settingsOpt() {
         viewModelScope.launch {
             val result = OShizuku.exec(OData.configdata.shell.toByteArray())
@@ -371,6 +466,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 恢复 `OData.configdata.restore` 中定义的系统参数。
+     */
     fun settingsRestore() {
         viewModelScope.launch {
             val result = OShizuku.exec(OData.configdata.restore.toByteArray())

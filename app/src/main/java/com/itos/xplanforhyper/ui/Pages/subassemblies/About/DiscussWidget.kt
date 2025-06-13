@@ -3,6 +3,9 @@ import android.content.Intent
 import android.net.Uri
 import android.text.util.Linkify
 import android.widget.Toast
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,10 +48,10 @@ fun moreapp() {
 fun DiscussWidget() {
     val items = listOf(
         OriginCardItem(
-            icon = ImageVector.vectorResource(R.drawable.ic_bilibili),
-            label = "BiliBili（开发者）",
+            icon = Icons.Default.Star,
+            label = "主页",
             onClick = {
-                OUI.openLink("https://space.bilibili.com/329223542")
+                OUI.openLink("https://www.itostar.com.cn/")
             }),
         OriginCardItem(
             icon = ImageVector.vectorResource(R.drawable.ic_bilibili),
@@ -71,13 +74,13 @@ fun DiscussWidget() {
                 OUI.openLink("https://pd.qq.com/s/8vadinclc")
             }
         ),
-//        OriginCardItem(
-//            icon = Icons.Default.Share,
-//            label = "更多软件",
-//            onClick = {
-//                moreapp()
-//            }
-//        ),
+        OriginCardItem(
+            icon = Icons.Default.Share,
+            label = "更多软件",
+            onClick = {
+                moreapp()
+            }
+        ),
     )
     ItemsCardWidget(
         title = {

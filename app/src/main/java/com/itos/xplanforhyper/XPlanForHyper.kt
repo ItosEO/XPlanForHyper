@@ -546,7 +546,7 @@ class XPlanForHyper : AppCompatActivity() {
 
         val packageInfo = packageManager.getPackageInfo(appPackageName, 0)
         // 应用被停用或者处于默认状态（未设置启用状态），返回 true；其他状态返回 false
-        return !packageInfo.applicationInfo.enabled
+        return !packageInfo.applicationInfo?.enabled!!
     }
 
 

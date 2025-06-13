@@ -19,13 +19,6 @@ fun DonateWidget() {
                 OUI.showImageDialog("zfb.jpg")
             }
         ),
-        OriginCardItem(
-            icon = ImageVector.vectorResource(R.drawable.ic_wechatpay),
-            label = "微信",
-            onClick = {
-                OUI.showImageDialog("wx.png")
-            }
-        ),
 
         )
     ItemsCardWidget(

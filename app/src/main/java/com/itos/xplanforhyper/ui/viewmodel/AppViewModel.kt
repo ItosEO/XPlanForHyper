@@ -28,33 +28,56 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.provider.Settings
 import com.kongzue.dialogx.dialogs.MessageDialog
+import android.os.Build
+import android.util.Log
+import androidx.lifecycle.ViewModel
 
+/**
+ * 应用列表的 ViewModel，负责处理数据加载、应用操作等逻辑。
+ * @param application 应用实例，用于访问应用上下文。
+ */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
+    /**
+     * 从 `pkglist` 文件加载的应用列表。
+     */
     private val _pkglist = mutableStateOf<List<AppInfo>>(emptyList())
     val pkglist: List<AppInfo> get() = _pkglist.value
 
+    /**
+     * 从 `optlist` 文件加载的应用列表（通常用于优化）。
+     */
     private val _optlist = mutableStateOf<List<AppInfo>>(emptyList())
     val optlist: List<AppInfo> get() = _optlist.value
 
+    /**
+     * 指示应用列表是否正在刷新。
+     */
     private val _isRefreshing = mutableStateOf(false)
     val isRefreshing: Boolean get() = _isRefreshing.value
 
+    /**
+     * 当前选择的应用卸载方法。
+     */
     private val _uninstallMethod = MutableStateFlow(UninstallMethod.PM_ENHANCED)
     val uninstallMethod: StateFlow<UninstallMethod> = _uninstallMethod.asStateFlow()
 
+    /**
+     * 保存终端命令执行的结果。
+     */
     private val _terminalResult = MutableStateFlow<ShizukuResult?>(null)
     val terminalResult: StateFlow<ShizukuResult?> = _terminalResult.asStateFlow()
 
     init {
+        OLog.i("AppViewModel", "ViewModel created")
         loadAppLists()
         loadUninstallMethod()
         checkAndGrantSecureSettingsPermission()
     }
 
     /**
-     * 检查并授予写入安全设置的权限。
-     * 它首先尝试直接写入一个测试值。如果失败，它会尝试使用 Shizuku 授予 `android.permission.WRITE_SECURE_SETTINGS` 权限。
+     * 检查并尝试授予 `WRITE_SECURE_SETTINGS` 权限。
+     * 首先会尝试直接写入，如果失败，则通过 Shizuku 授予权限。
      */
     private fun checkAndGrantSecureSettingsPermission() {
         viewModelScope.launch {
@@ -78,8 +101,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 从 SharedPreferences 加载卸载方法。
-     * 默认使用增强型 PM 卸载。
+     * 从 SharedPreferences 加载用户保存的卸载方法。
      */
     private fun loadUninstallMethod() {
         val methodValue = SpUtils.getParam(getApplication(), "method", UninstallMethod.PM_ENHANCED.value) as Int
@@ -88,7 +110,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * 设置并持久化用户选择的卸载方法。
-     * @param method 要设置的卸载方法。
+     * @param method 用户选择的卸载方法。
      */
     fun setUninstallMethod(method: UninstallMethod) {
         _uninstallMethod.value = method
@@ -96,7 +118,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 使用 Shizuku 执行给定的终端命令。
+     * 使用 Shizuku 异步执行给定的终端命令。
      * @param command 要执行的命令字符串。
      */
     fun executeTerminalCommand(command: String) {
@@ -106,15 +128,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 重置终端执行结果，通常在处理完结果后调用。
+     * 重置终端命令的执行结果，通常在UI上显示完结果后调用。
      */
     fun resetTerminalResult() {
         _terminalResult.value = null
     }
 
     /**
-     * 根据当前选择的卸载方法卸载指定的应用程序。
-     * @param appInfo 要卸载的应用信息。
+     * 根据当前选择的卸载方法卸载指定的应用。
+     * @param appInfo 要卸载的应用信息对象。
      */
     fun uninstallApp(appInfo: AppInfo) {
         viewModelScope.launch {
@@ -135,8 +157,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 重新安装指定的应用程序。
-     * @param appInfo 要重装的应用信息。
+     * 重新安装（恢复）指定的应用。
+     * @param appInfo 要重装的应用信息对象。
      */
     fun reinstallApp(appInfo: AppInfo) {
         viewModelScope.launch {
@@ -159,8 +181,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 根据包名卸载应用程序。
-     * @param packageName 要卸载的应用的包名。
+     * 根据包名卸载应用。
+     * @param packageName 要卸载的应用包名。
      */
     fun uninstallPackageByName(packageName: String) {
         viewModelScope.launch {
@@ -181,8 +203,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 根据包名重新安装应用程序。
-     * @param packageName 要重装的应用的包名。
+     * 根据包名重新安装（恢复）应用。
+     * @param packageName 要重装的应用包名。
      */
     fun reinstallPackageByName(packageName: String) {
         viewModelScope.launch {
@@ -205,7 +227,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 显示一个对话框来展示操作结果。
+     * 显示一个对话框来展示 Shizuku 的操作结果。
      * @param title 对话框的标题。
      * @param result Shizuku 的执行结果。
      */
@@ -224,46 +246,66 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 从 `res/raw` 目录中的 `pkglist` 和 `optlist` 文件加载应用列表。
-     * 加载后会调用 `generateAppListDetails` 来填充应用详情。
+     * 从 `res/raw` 目录中动态加载应用列表。
+     * 它会根据设备品牌自动选择合适的 `pkglist` 和 `optlist` 文件。
+     * 例如，在小米设备上，它会尝试加载 `pkglist_hyper` 和 `optlist_hyper`。
+     * 如果特定品牌的文件不存在，则会回退到默认的 `pkglist` 和 `optlist` 文件。
      */
     private fun loadAppLists() {
         viewModelScope.launch(Dispatchers.IO) {
             val context = getApplication<Application>().applicationContext
-            try {
-                // Load pkglist
-                val pkglistResult = mutableListOf<AppInfo>()
-                val inputStreamPkg = context.resources.openRawResource(R.raw.pkglist)
-                BufferedReader(InputStreamReader(inputStreamPkg)).forEachLine { line ->
-                    val packageName = line.trim()
-                    if (packageName.isNotBlank()) {
-                        pkglistResult.add(AppInfo(appName = "", appPkg = packageName))
+            val allPkgLists = mutableMapOf<String, List<AppInfo>>()
+            val allOptLists = mutableMapOf<String, List<AppInfo>>()
+
+            val rawFields = R.raw::class.java.fields
+            for (field in rawFields) {
+                try {
+                    val resName = field.name
+                    val resId = field.getInt(null)
+
+                    val (listType, variant) = when {
+                        resName.startsWith("pkglist") -> "pkglist" to (if (resName == "pkglist") "default" else resName.substringAfter("pkglist_"))
+                        resName.startsWith("optlist") -> "optlist" to (if (resName == "optlist") "default" else resName.substringAfter("optlist_"))
+                        else -> null to null
                     }
-                }
-                _pkglist.value = pkglistResult
 
-                // Load optlist
-                val optlistResult = mutableListOf<AppInfo>()
-                val inputStreamOpt = context.resources.openRawResource(R.raw.optlist)
-                BufferedReader(InputStreamReader(inputStreamOpt)).forEachLine { line ->
-                    val packageName = line.trim()
-                    if (packageName.isNotBlank()) {
-                        optlistResult.add(AppInfo(appName = "", appPkg = packageName))
+                    if (listType != null && variant != null) {
+                        val appInfoList = context.resources.openRawResource(resId).use { inputStream ->
+                            BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
+                                lines.filter { it.isNotBlank() }.map { AppInfo(appName = "", appPkg = it.trim()) }.toList()
+                            }
+                        }
+                        if (listType == "pkglist") {
+                            allPkgLists[variant] = appInfoList
+                        } else {
+                            allOptLists[variant] = appInfoList
+                        }
                     }
+                } catch (e: Exception) {
+                    OLog.e("Error loading raw resource", e)
                 }
-                _optlist.value = optlistResult
-
-                // After loading base lists, generate full details
-                generateAppListDetails()
-
-            } catch (e: Exception) {
-                OLog.e("loadAppLists failed", e)
             }
+
+            val brand = Build.BRAND.lowercase()
+            val variant = when (brand) {
+                "xiaomi", "redmi", "poco" -> "hyper"
+                "vivo","iqoo" -> "vivo"
+                "oneplus","oppo" -> "color"
+                "meizu" -> "meizu"
+                "samsung" -> "samsung"
+                else -> brand
+            }
+
+            _pkglist.value = allPkgLists[variant] ?: allPkgLists["default"] ?: emptyList()
+            _optlist.value = allOptLists[variant] ?: allOptLists["default"] ?: emptyList()
+
+            // After loading base lists, generate full details
+            generateAppListDetails()
         }
     }
 
     /**
-     * 刷新应用列表，更新应用的状态（如是否安装、是否禁用）。
+     * 刷新应用列表，重新加载应用详情。
      */
     fun refreshAppList() {
         viewModelScope.launch {
@@ -275,7 +317,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * 为 `pkglist` 和 `optlist` 中的每个应用生成详细信息，
-     * 包括应用名称、图标和状态。
+     * 包括应用名称和图标。
      */
     private fun generateAppListDetails() {
         viewModelScope.launch(Dispatchers.IO) {

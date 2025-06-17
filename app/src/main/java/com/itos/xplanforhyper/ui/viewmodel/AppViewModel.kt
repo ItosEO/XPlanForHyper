@@ -123,6 +123,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 UninstallMethod.PM -> "pm uninstall ${appInfo.appPkg}"
                 UninstallMethod.SERVICE_CALL_S -> "service call package 134 s16 ${appInfo.appPkg} i32 0 i32 0"
                 UninstallMethod.SERVICE_CALL_T -> "service call package 131 s16 ${appInfo.appPkg} i32 0 i32 0"
+                UninstallMethod.SERVICE_CALL_U -> "service call package 132 s16 ${appInfo.appPkg} i32 0 i32 0"
+                UninstallMethod.SERVICE_CALL_V -> "service call package 133 s16 ${appInfo.appPkg} i32 0 i32 0"
             }
             val result = OShizuku.exec(command.toByteArray())
             withContext(Dispatchers.Main) {
@@ -141,6 +143,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val command = when (_uninstallMethod.value) {
                 UninstallMethod.SERVICE_CALL_T -> "service call package 131 s16 ${appInfo.appPkg} i32 1 i32 0"
                 UninstallMethod.SERVICE_CALL_S -> "service call package 134 s16 ${appInfo.appPkg} i32 1 i32 0"
+                UninstallMethod.SERVICE_CALL_U -> "service call package 132 s16 ${appInfo.appPkg} i32 1 i32 0"
+                UninstallMethod.SERVICE_CALL_V -> "service call package 133 s16 ${appInfo.appPkg} i32 1 i32 0"
                 else -> "pm install-existing ${appInfo.appPkg}"
             }
             withContext(Dispatchers.Main) {
@@ -165,6 +169,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 UninstallMethod.PM -> "pm uninstall $packageName"
                 UninstallMethod.SERVICE_CALL_S -> "service call package 134 s16 $packageName i32 0 i32 0"
                 UninstallMethod.SERVICE_CALL_T -> "service call package 131 s16 $packageName i32 0 i32 0"
+                UninstallMethod.SERVICE_CALL_U -> "service call package 132 s16 $packageName i32 0 i32 0"
+                UninstallMethod.SERVICE_CALL_V -> "service call package 133 s16 $packageName i32 0 i32 0"
             }
             val result = OShizuku.exec(command.toByteArray())
             withContext(Dispatchers.Main) {
@@ -183,6 +189,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val command = when (_uninstallMethod.value) {
                 UninstallMethod.SERVICE_CALL_T -> "service call package 131 s16 $packageName i32 1 i32 0"
                 UninstallMethod.SERVICE_CALL_S -> "service call package 134 s16 $packageName i32 1 i32 0"
+                UninstallMethod.SERVICE_CALL_U -> "service call package 132 s16 $packageName i32 1 i32 0"
+                UninstallMethod.SERVICE_CALL_V -> "service call package 133 s16 $packageName i32 1 i32 0"
                 else -> "pm install-existing $packageName"
             }
             withContext(Dispatchers.Main) {

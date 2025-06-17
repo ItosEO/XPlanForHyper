@@ -375,8 +375,6 @@ class XPlanForHyper : AppCompatActivity() {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-//            OLog.i("重绘", "触发重绘")
-
             if (appInfo.appIcon != null) {
                 Image(
                     painter = rememberDrawablePainter(appInfo.appIcon),
@@ -610,7 +608,6 @@ class XPlanForHyper : AppCompatActivity() {
     }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AppListScreen(viewModel: AppViewModel) {
         val navController = rememberNavController()

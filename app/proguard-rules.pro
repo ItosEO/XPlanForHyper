@@ -80,3 +80,4 @@
 }
 
 
+-keep class com.itos.xplanforhyper.R$raw { *; }

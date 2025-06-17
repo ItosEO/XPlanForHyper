@@ -287,8 +287,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val brand = Build.BRAND.lowercase()
+//            withContext(Dispatchers.Main) {
+//                MessageDialog.build()
+//                    .setTitle("品牌检测")
+//                    .setMessage("当前设备品牌: $brand")
+//                    .setOkButton("好") { _, _ -> false }
+//                    .show()
+//            }
             val variant = when (brand) {
-                "xiaomi", "redmi", "poco" -> "hyper"
+                "xiaomi", "redmi", "poco" -> "miui"
                 "vivo","iqoo" -> "vivo"
                 "oneplus","oppo" -> "color"
                 "meizu" -> "meizu"

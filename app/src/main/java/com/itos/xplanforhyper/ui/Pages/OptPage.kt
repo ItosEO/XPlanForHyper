@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.itos.xplanforhyper.XPlanForHyper
 import com.itos.xplanforhyper.XPlanForHyper.Companion.app
+import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.AutoBoostBotton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.ControlSystemUpdateButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.HDButton
 import com.itos.xplanforhyper.ui.Pages.subassemblies.Opt.OptButton
@@ -37,22 +38,6 @@ import com.itos.xplanforhyper.ui.viewmodel.AppViewModel
 import com.itos.xplanforhyper.utils.OData
 
 
-//@Composable
-//fun SettingsDebug(viewModel: AppViewModel) {
-//    MaterialAlertDialogBuilder(app)
-//        .setTitle("调试")
-//        .setMessage("这是调试功能,您确定要使用吗?")
-//        .setPositiveButton("OK") { _, _ ->
-//            // This would need to be in a coroutine scope
-//            // viewModel.shizukuExec(OData.configdata.debug.toByteArray())
-//            MaterialAlertDialogBuilder(app)
-//                .setTitle("调试信息")
-//                .setMessage("temp") // temp would be from a suspend function
-//                .setPositiveButton("OK", null)
-//                .show()
-//        }
-//        .show()
-//}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,7 +98,8 @@ fun OptPage(viewModel: AppViewModel?) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     viewModel?.let {
                         OptButton(activity, it)
-                        ProcessLimitButton(it)
+//                        ProcessLimitButton(it)
+                        AutoBoostBotton()
                     }
                 }
 
@@ -137,7 +123,8 @@ fun OptPage(viewModel: AppViewModel?) {
             ) {
                 viewModel?.let {
                     OptButton(activity, it)
-                    ProcessLimitButton(it)
+                    AutoBoostBotton()
+//                    ProcessLimitButton(it)
                     HDButton(it)
                     ControlSystemUpdateButton(it)
                 }

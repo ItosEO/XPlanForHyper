@@ -510,28 +510,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             OShizuku.exec("settings put secure icon_blacklist \"$newBlacklist\"".toByteArray())
         }
     }
+    
 
-    /**
-     * 应用 `OData.configdata.shell` 中定义的系统参数优化。
-     */
-    fun settingsOpt() {
-        viewModelScope.launch {
-            val result = OShizuku.exec(OData.configdata.shell.toByteArray())
-            withContext(Dispatchers.Main) {
-                showResultDialog("系统参数调优", result)
-            }
-        }
-    }
-
-    /**
-     * 恢复 `OData.configdata.restore` 中定义的系统参数。
-     */
-    fun settingsRestore() {
-        viewModelScope.launch {
-            val result = OShizuku.exec(OData.configdata.restore.toByteArray())
-            withContext(Dispatchers.Main) {
-                showResultDialog("还原系统参数", result)
-            }
-        }
-    }
 } 

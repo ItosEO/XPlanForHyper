@@ -22,7 +22,7 @@ fun StatusWidget() {
     val containerColor = MaterialTheme.colorScheme.primaryContainer
     val onContainerColor = MaterialTheme.colorScheme.onPrimaryContainer
 
-    val level = app.getString(R.string.build_type)
+    val level = BuildConfig.BUILD_TYPE
 
     CardWidget(
         colors = CardDefaults.elevatedCardColors(

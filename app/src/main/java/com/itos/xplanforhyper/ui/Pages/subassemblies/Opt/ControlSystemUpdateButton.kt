@@ -2,7 +2,6 @@ package com.itos.xplanforhyper.ui.Pages.subassemblies.Opt
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,10 +19,7 @@ import com.itos.xplanforhyper.utils.OShizuku
 @Composable
 fun ControlSystemUpdateButton(viewModel: AppViewModel){
     val activity = XPlanForHyper.app
-    Row(
-        modifier = Modifier
-            .padding(vertical = 45.dp)
-    ) {
+    Row {
         FilledTonalButton(
             modifier = Modifier
                 .size(width = 130.dp, height = 70.dp),

@@ -6,8 +6,11 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -24,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.itos.xplanforhyper.XPlanForHyper
@@ -39,7 +43,6 @@ import com.itos.xplanforhyper.utils.OData
 
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptPage(viewModel: AppViewModel?) {
@@ -82,18 +85,18 @@ fun OptPage(viewModel: AppViewModel?) {
                     }
                 }
             )
-        }) {
+        }) { innerPadding ->
         if (isLandscape(app)) {
-
             val scrollState = rememberScrollState()
             // 执行横屏时的操作
             Column(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(innerPadding),
 //                    .verticalScroll(scrollState)
 //                    .padding(top = getStatusBarHeight().dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center // 将子项垂直居中
+                verticalArrangement = Arrangement.SpaceEvenly // 将子项垂直居中
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     viewModel?.let {
@@ -109,24 +112,22 @@ fun OptPage(viewModel: AppViewModel?) {
                         ControlSystemUpdateButton(it)
                     }
                 }
-//            Settings_opt(viewModel)
-
             }
         } else {
             // 执行竖屏时的操作
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding(),
+                    .padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center // 将子项垂直居中
+                verticalArrangement = Arrangement.SpaceEvenly // 将子项垂直居中
             ) {
-                viewModel?.let {
-                    OptButton(activity, it)
+                if (viewModel != null) {
+                    OptButton(activity, viewModel)
                     AutoBoostBotton()
 //                    ProcessLimitButton(it)
-                    HDButton(it)
-                    ControlSystemUpdateButton(it)
+                    HDButton(viewModel)
+                    ControlSystemUpdateButton(viewModel)
                 }
             }
         }

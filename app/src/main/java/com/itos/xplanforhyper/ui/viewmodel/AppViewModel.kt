@@ -72,7 +72,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         OLog.i("AppViewModel", "ViewModel created")
         loadAppLists()
         loadUninstallMethod()
-        checkAndGrantSecureSettingsPermission()
+//        checkAndGrantSecureSettingsPermission()
     }
 
     /**

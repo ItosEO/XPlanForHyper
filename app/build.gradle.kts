@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.itos.xplanforhyper"
+    namespace = "com.itos.xplan"
     compileSdk = 35
 
     applicationVariants.all {
@@ -13,12 +13,12 @@ android {
             val ver = defaultConfig.versionName + "(${defaultConfig.versionCode})"
 
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "XHyper_$ver.apk"
+                "XPlan_$ver.apk"
         }
     }
 
     defaultConfig {
-        applicationId = "com.itos.xplanforhyper"
+        applicationId = "com.itos.xplan"
         minSdk = 26
         targetSdk = 35
         versionCode = 12

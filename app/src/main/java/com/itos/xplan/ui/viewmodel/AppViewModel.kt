@@ -31,6 +31,7 @@ import com.kongzue.dialogx.dialogs.MessageDialog
 import android.os.Build
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.itos.xplan.BuildConfig
 
 /**
  * 应用列表的 ViewModel，负责处理数据加载、应用操作等逻辑。
@@ -89,7 +90,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 OLog.e("写入安全设置权限异常", e)
                 // Assuming Shizuku is available and authorized. This logic might need refinement
                 // based on how Shizuku's status is exposed from the Activity to ViewModel.
-                val result = OShizuku.exec("pm grant com.itos.xplan android.permission.WRITE_SECURE_SETTINGS".toByteArray())
+                val result =
+                    OShizuku.exec("pm grant com.itos.xplan android.permission.WRITE_SECURE_SETTINGS".toByteArray())
                 if (result.exitCode == 0 && result.output.isBlank()) {
                     OData.is_have_premissipn = true
                 } else {
@@ -104,7 +106,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * 从 SharedPreferences 加载用户保存的卸载方法。
      */
     private fun loadUninstallMethod() {
-        val methodValue = SpUtils.getParam(getApplication(), "method", UninstallMethod.PM_ENHANCED.value) as Int
+        val methodValue =
+            SpUtils.getParam(getApplication(), "method", UninstallMethod.PM_ENHANCED.value) as Int
         _uninstallMethod.value = UninstallMethod.fromValue(methodValue)
     }
 
@@ -264,17 +267,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     val resId = field.getInt(null)
 
                     val (listType, variant) = when {
-                        resName.startsWith("pkglist") -> "pkglist" to (if (resName == "pkglist") "default" else resName.substringAfter("pkglist_"))
-                        resName.startsWith("optlist") -> "optlist" to (if (resName == "optlist") "default" else resName.substringAfter("optlist_"))
+                        resName.startsWith("pkglist") -> "pkglist" to (if (resName == "pkglist") "default" else resName.substringAfter(
+                            "pkglist_"
+                        ))
+
+                        resName.startsWith("optlist") -> "optlist" to (if (resName == "optlist") "default" else resName.substringAfter(
+                            "optlist_"
+                        ))
+
                         else -> null to null
                     }
 
                     if (listType != null && variant != null) {
-                        val appInfoList = context.resources.openRawResource(resId).use { inputStream ->
-                            BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
-                                lines.filter { it.isNotBlank() }.map { AppInfo(appName = "", appPkg = it.trim()) }.toList()
+                        val appInfoList =
+                            context.resources.openRawResource(resId).use { inputStream ->
+                                BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
+                                    lines.filter { it.isNotBlank() }
+                                        .map { AppInfo(appName = "", appPkg = it.trim()) }.toList()
+                                }
                             }
-                        }
                         if (listType == "pkglist") {
                             allPkgLists[variant] = appInfoList
                         } else {
@@ -287,17 +298,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val brand = Build.BRAND.lowercase()
-//            withContext(Dispatchers.Main) {
-//                MessageDialog.build()
-//                    .setTitle("品牌检测")
-//                    .setMessage("当前设备品牌: $brand")
-//                    .setOkButton("好") { _, _ -> false }
-//                    .show()
-//            }
+            withContext(Dispatchers.Main) {
+                if (BuildConfig.DEBUG) {
+                    MessageDialog.build()
+                        .setTitle("品牌检测")
+                        .setMessage("当前设备品牌: $brand")
+                        .setOkButton("好") { _, _ -> false }
+                        .show()
+                }
+            }
             val variant = when (brand) {
                 "xiaomi", "redmi", "poco" -> "miui"
-                "vivo","iqoo" -> "vivo"
-                "oneplus","oppo" -> "color"
+                "vivo", "iqoo" -> "vivo"
+                "oneplus", "oppo" -> "color"
                 "meizu" -> "meizu"
                 "samsung" -> "samsung"
                 else -> brand
@@ -352,7 +365,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * @param packageManager 包管理器实例。
      * @return 更新后的 AppInfo 对象。
      */
-    private fun updateAppInfo(appInfo: AppInfo, context: Context, packageManager: PackageManager): AppInfo {
+    private fun updateAppInfo(
+        appInfo: AppInfo,
+        context: Context,
+        packageManager: PackageManager
+    ): AppInfo {
         val isInstalled = OPackage.isInstalled(appInfo.appPkg, packageManager)
         return if (isInstalled) {
             appInfo.copy(
@@ -510,6 +527,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             OShizuku.exec("settings put secure icon_blacklist \"$newBlacklist\"".toByteArray())
         }
     }
-    
+
 
 } 

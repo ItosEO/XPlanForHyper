@@ -1,15 +1,12 @@
 package com.itos.xplan.ui.Pages
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -27,8 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.itos.xplan.XPlanForHyper
 import com.itos.xplan.XPlanForHyper.Companion.app
@@ -36,11 +31,8 @@ import com.itos.xplan.ui.Pages.subassemblies.Opt.AutoBoostBotton
 import com.itos.xplan.ui.Pages.subassemblies.Opt.ControlSystemUpdateButton
 import com.itos.xplan.ui.Pages.subassemblies.Opt.HDButton
 import com.itos.xplan.ui.Pages.subassemblies.Opt.OptButton
-import com.itos.xplan.ui.Pages.subassemblies.Opt.ProcessLimitButton
 import com.itos.xplan.ui.theme.OriginPlanTheme
 import com.itos.xplan.ui.viewmodel.AppViewModel
-import com.itos.xplan.utils.OData
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +63,7 @@ fun OptPage(viewModel: AppViewModel?) {
                         onClick = {
                             MaterialAlertDialogBuilder(app)
                                 .setTitle("公告")
-                                .setMessage(app.show_notice)
+                                .setMessage(app.notice)
                                 .setPositiveButton("了解") { dialog, which ->
                                     dialog.dismiss()
                                 }

@@ -15,11 +15,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
@@ -119,7 +119,7 @@ class XPlanForHyper : AppCompatActivity() {
     val context: Context = this
     var b = true
     var c = false
-    var show_notice: String = "暂无公告"
+    var notice: String = "暂无公告"
     
     private val viewModel: AppViewModel by viewModels()
 
@@ -138,6 +138,7 @@ class XPlanForHyper : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             OriginPlanTheme {
                 // A surface container using the 'background' color from the theme
@@ -231,7 +232,7 @@ class XPlanForHyper : AppCompatActivity() {
                 val log = jsonObject.getString("log")
                 val isShowNotice = jsonObject.getBoolean("isShowNotice")
                 val notice = jsonObject.getString("notice")
-                show_notice = notice
+                this@XPlanForHyper.notice = notice
                 OLog.i(
                     "更新",
                     update + "\n" + version + "\n" + url + "\n" + version_name + "\n" + log + "\n" + isShowNotice + "\n" + notice

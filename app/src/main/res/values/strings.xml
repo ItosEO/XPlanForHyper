@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">XHyper</string>
+    <string name="app_name">XPlan</string>
     <string name="action_licenses">许可证</string>
     <string name="build_type">Release</string>
     <string name="operation_failed">操作失败：%s</string>
